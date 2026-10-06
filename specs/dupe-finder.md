@@ -2,7 +2,7 @@
 
 Status: Approved design, 2026-10-06
 Target: Jellyfin Server 12.2.0 (jellyfin and jellyfin-web tag `v12.2`)
-Decisions: ADR-0001 … ADR-0007 in `docs/adr/`. Visual rules: `specs/design.md`.
+Decisions: ADR-0001 … ADR-0008 in `docs/adr/`. Visual rules: `specs/design.md`.
 
 ## 1. Purpose
 
@@ -41,8 +41,10 @@ The name does not appear in the official stable plugin manifest (checked 2026-10
 ## 4. Definitions
 
 - **Scanned libraries**: the libraries (Jellyfin virtual folders) selected by the admin.
-- **Item set**: non-virtual items inside the scanned libraries, excluding extras/owned items
-  (trailers, featurettes; items with a non-empty `OwnerId`).
+- **Item set**: non-virtual items inside the scanned libraries, excluding extras (items with an
+  `ExtraType`) and additional parts (owned items that are not alternate versions). Alternate
+  versions are included even though Jellyfin 12.2 stores auto-detected ones as owned items
+  (amended 2026-10-06, see ADR-0008).
 - **Has provider id**: the item's `ProviderIds` contains at least one non-blank value.
 - **Normalised text**: Unicode NFKD, combining marks removed, invariant lower case, `&`
   replaced by `and`, then every character that is not a letter or digit removed.
@@ -67,27 +69,35 @@ The name does not appear in the official stable plugin manifest (checked 2026-10
 
 ### DF-R2 Endpoints
 
+JSON follows Jellyfin's API conventions (ADR-0008): PascalCase property names, enum values as
+strings, and properties whose value is null are omitted (shown as `?` below). Request property
+names are matched case-insensitively.
+
 - **DF-R2.1** `GET /DupeFinder/Libraries` returns the server's libraries:
-  `[{ "id": string (GUID, "N" format), "name": string, "collectionType": string|null }]`,
+  `[{ "Id": string (GUID, 32 hex digits), "Name": string, "CollectionType"?: string }]`,
   ordered by name.
 - **DF-R2.2** `POST /DupeFinder/Scan`, JSON body
-  `{ "libraryIds": string[], "checks": string[] }`. Valid check ids, in display order:
+  `{ "LibraryIds": string[], "Checks": string[] }`. Valid check ids, in display order:
   `DuplicateMovies`, `DuplicateSeries`, `DuplicateEpisodes`, `DuplicateAlbums`,
   `MergedVersions`, `UnmatchedMoviesSeries`, `UnmatchedEpisodes`, `UnmatchedMusic`,
   `IncompleteMetadata`.
 - **DF-R2.3** Scan response:
-  `{ "scannedItemCount": int, "durationMs": int, "summary": { "<check>": int },
-  "findings": [ { "check", "group": int|null, "itemId", "libraryName", "type", "name",
-  "year": int|null, "season": int|null, "episode": int|null, "seriesName": string|null,
-  "path": string|null, "sizeBytes": long|null, "providerIds": { "<key>": "<value>" },
-  "reason": string } ] }`.
-  `summary` has one entry per requested check. For duplicate checks and `MergedVersions` the
+  `{ "ScannedItemCount": int, "DurationMs": int, "Summary": { "<check id>": int },
+  "Findings": [ { "Check": "<check id>", "Group"?: int, "ItemId": string, "LibraryName": string,
+  "ItemType": "Movie"|"Series"|"Episode"|"MusicAlbum"|"MusicArtist", "Name": string,
+  "Year"?: int, "Season"?: int, "Episode"?: int, "SeriesName"?: string, "Path"?: string,
+  "SizeBytes"?: int, "ProviderIds": { "<key>": "<value>" }, "Reason": string } ] }`.
+  `Summary` has one entry per requested check. For duplicate checks and `MergedVersions` the
   count is the number of groups; for the others it is the number of findings.
   Findings are ordered by check (display order), then group, then name, then path.
-  Within one check an item appears at most once; `libraryName` is the first scanned library
-  (by name) in which the item was found.
-- **DF-R2.4** A scan request with an empty `libraryIds`, an unknown library id, an empty
-  `checks`, or an unknown check id returns HTTP 400 with a message naming the problem.
+  Group numbers run 1, 2, 3… across the whole response in output order. Within a group, members
+  are ordered by name then path, except `MergedVersions`, where the primary comes first.
+  Within one check an item appears at most once; `LibraryName` is the first scanned library
+  (by name) in which the item was found. `ProviderIds` holds only non-blank values.
+- **DF-R2.4** A scan request with an empty `LibraryIds`, an unknown library id, an empty
+  `Checks`, or an unknown check id returns HTTP 400 with an RFC 7807 problem-details body whose
+  `detail` names the problem: `Select at least one library.`, `Unknown library id '<id>'.`,
+  `Select at least one check.`, `Unknown check '<id>'.`
 
 ### DF-R3 Duplicate detection
 
@@ -156,7 +166,7 @@ Only groups with two or more items are reported. Matching runs across all scanne
 ### DF-R7 Page: row actions
 
 - **DF-R7.1 Open** — opens `#/details?id=<itemId>&serverId=<serverId>` in a new browser tab.
-- **DF-R7.2 Identify** — shown only for `Movie`, `Series`, `MusicAlbum` and `MusicArtist` rows,
+- **DF-R7.2 Identify** — shown only for rows whose `ItemType` is `Movie`, `Series`, `MusicAlbum` or `MusicArtist`,
   and only when `Dashboard.itemIdentifier` exists. It calls
   `Dashboard.itemIdentifier.show(itemId, ApiClient.serverId())` (ADR-0003). When the promise
   resolves, the row shows `Identified — rescan to refresh`. When it rejects (cancelled),
@@ -171,7 +181,8 @@ Only groups with two or more items are reported. Matching runs across all scanne
   request (ADR-0006).
 - **DF-R8.3** Columns, in order: `Check, Group, Library, Type, Name, Year, Season, Episode,
   Series, Path, SizeBytes, ProviderIds, Reason, ItemId`. `ProviderIds` is `Key=Value` pairs
-  joined by `; `. One row per finding, same order as the table.
+  joined by `; `. `Check` holds the same label the table shows. One row per finding, same order
+  as the table.
 - **DF-R8.4** Format: UTF-8 with BOM, comma separator, CRLF line endings. Fields containing a
   comma, double quote, CR or LF are wrapped in double quotes, with inner quotes doubled.
 - **DF-R8.5** Text fields whose first character is `=`, `+`, `-`, `@`, tab or CR are prefixed
@@ -206,7 +217,7 @@ Each line is checkable. "Admin" and "non-admin" mean real accounts on the test s
 | AC-7 | After adding `<base-url>/manifest.json` as a repository, the plugin appears in the catalog, installs, and after restart shows as Active, version 1.0.0.0. | R9 |
 | AC-8 | Logged in as admin, the dashboard sidebar shows "Duplicate & Unmatched Finder" and opens the page. | R1.1 |
 | AC-9 | `GET /DupeFinder/Libraries` and `POST /DupeFinder/Scan`: admin token → 200; non-admin token → 403; no token → 401. | R1.2 |
-| AC-10 | Invalid scan bodies (empty libraries, unknown library id, empty checks, unknown check) → 400 with message. | R2.4 |
+| AC-10 | Invalid scan bodies (empty libraries, unknown library id, empty checks, unknown check) → 400 with the DF-R2.4 `detail` text. | R2.4 |
 | AC-11 | On the test server, the plugin's per-library counts for UnmatchedMoviesSeries and UnmatchedMusic (albums and album artists) equal an independent count from Jellyfin's REST API (`scripts/crosscheck.py`), and every DuplicateMovies group sharing a TMDb id appears in the cross-check's TMDb grouping. | R3.1, R4 |
 | AC-12 | In a headless browser as admin: select libraries and checks, Scan, the summary and table render, Download CSV produces a file whose parsed row count equals the table's row count and whose header matches DF-R8.3. | R5, R6, R8 |
 | AC-13 | Clicking Identify on an unmatched movie opens Jellyfin's Identify dialog for that item; Edit metadata opens the metadata editor for that item; Open opens its details page. | R7 |
@@ -217,3 +228,10 @@ Each line is checkable. "Admin" and "non-admin" mean real accounts on the test s
 Deleting, merging or renaming items; automatic fixing; scheduled or background scans;
 persisting results between visits; non-admin access; Identify for episodes (Jellyfin does not
 offer it); checks for books, photos, music videos and individual audio tracks.
+
+## 8. Amendments
+
+- 2026-10-06 (before implementation): §4 Item set now keeps alternate versions stored as owned
+  items; DF-R2 rewritten to Jellyfin's PascalCase / omit-null / problem-details conventions;
+  finding field `type` renamed `ItemType` (analyser rule CA1721 forbids a `Type` property next to
+  `GetType()`); group numbering and member order made explicit. Rationale: ADR-0008.
