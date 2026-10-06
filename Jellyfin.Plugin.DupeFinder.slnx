@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Jellyfin.Plugin.DupeFinder/Jellyfin.Plugin.DupeFinder.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Jellyfin.Plugin.DupeFinder.Tests/Jellyfin.Plugin.DupeFinder.Tests.csproj" />
+  </Folder>
+</Solution>
