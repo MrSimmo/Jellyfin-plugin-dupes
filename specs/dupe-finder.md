@@ -2,7 +2,7 @@
 
 Status: Approved design, 2026-10-06
 Target: Jellyfin Server 12.2.0 (jellyfin and jellyfin-web tag `v12.2`)
-Decisions: ADR-0001 … ADR-0008 in `docs/adr/`. Visual rules: `specs/design.md`.
+Decisions: ADR-0001 … ADR-0009 in `docs/adr/`. Visual rules: `specs/design.md`.
 
 ## 1. Purpose
 
@@ -93,7 +93,7 @@ names are matched case-insensitively.
   Group numbers run 1, 2, 3… across the whole response in output order. Within a group, members
   are ordered by name then path, except `MergedVersions`, where the primary comes first.
   Within one check an item appears at most once; `LibraryName` is the first scanned library
-  (by name) in which the item was found. `ProviderIds` holds only non-blank values.
+  (by name) in which the item was found. `ProviderIds` holds only non-blank values, trimmed.
 - **DF-R2.4** A scan request with an empty `LibraryIds`, an unknown library id, an empty
   `Checks`, or an unknown check id returns HTTP 400 with an RFC 7807 problem-details body whose
   `detail` names the problem: `Select at least one library.`, `Unknown library id '<id>'.`,
@@ -103,11 +103,13 @@ names are matched case-insensitively.
 
 Duplicate groups are transitive: if A matches B and B matches C, then A, B and C form one group.
 Only groups with two or more items are reported. Matching runs across all scanned libraries.
+Provider id values are compared after trimming surrounding whitespace, ignoring case.
+A normalised name (or joined album artist) that is empty never matches anything (ADR-0009).
 
 - **DF-R3.1 DuplicateMovies** — over `Movie` items in the collapsed set, two items match when:
-  (a) they share a non-blank TMDb id; or (b) they share a non-blank IMDb id
-  (case-insensitive); or (c) at least one of the two has no provider id, their normalised
-  names are equal, and their `ProductionYear` values are equal (both null counts as equal).
+  (a) they share a non-blank TMDb id; or (b) they share a non-blank IMDb id; or (c) at least
+  one of the two has no provider id, their normalised names are equal and non-empty, and their
+  `ProductionYear` values are equal (both null counts as equal).
   Two items that both have provider ids never match on name and year alone.
 - **DF-R3.2 DuplicateSeries** — as DF-R3.1, over `Series` items, with provider keys TVDb, TMDb
   and IMDb.
@@ -117,7 +119,7 @@ Only groups with two or more items are reported. Matching runs across all scanne
   DF-R3.2, not by repeating every episode.
 - **DF-R3.4 DuplicateAlbums** — over `MusicAlbum` items, two items match when they share a
   non-blank MusicBrainz album (release) id, or when both have at least one album artist and
-  their normalised joined album artists and normalised names are equal.
+  their normalised joined album artists and normalised names are equal and non-empty.
 - **DF-R3.5 MergedVersions** — every version group of `Movie` or `Episode` items with two or
   more members is reported as one group, primary first.
 - **DF-R3.6 Reasons** — each duplicate finding's `reason` lists, joined by `; `, the distinct
@@ -235,3 +237,8 @@ offer it); checks for books, photos, music videos and individual audio tracks.
   items; DF-R2 rewritten to Jellyfin's PascalCase / omit-null / problem-details conventions;
   finding field `type` renamed `ItemType` (analyser rule CA1721 forbids a `Type` property next to
   `GetType()`); group numbering and member order made explicit. Rationale: ADR-0008.
+- 2026-10-06 (during implementation, Task 2): DF-R3 now states that empty normalised names and
+  empty joined album artists never match (DF-R3.1(c), DF-R3.2, DF-R3.4), and that every provider
+  id is compared trimmed and case-insensitively (previously stated for IMDb only); DF-R2.3
+  `ProviderIds` values are trimmed. Behaviour the approved plan already specified (Review Focus 1);
+  the spec text had not caught up. Rationale: ADR-0009.
