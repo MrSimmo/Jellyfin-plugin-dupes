@@ -184,7 +184,7 @@ export default function (view) {
         anchor.href = href;
         anchor.target = '_blank';
         anchor.rel = 'noopener';
-        anchor.className = `emby-button ${className}`;
+        anchor.className = `emby-button raised ${className}`;
         anchor.textContent = text;
         return anchor;
     }
