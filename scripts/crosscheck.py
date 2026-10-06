@@ -97,7 +97,9 @@ def check_validation(admin, library_id):
 
 
 def rest_items(admin, user_id, path):
-    status, body = call("GET", path + f"&userId={user_id}&Fields=ProviderIds", admin)
+    # Explicit false: otherwise /Items folds movies and series in collections into BoxSet items whenever the
+    # server groups them into collections (Folder.CollapseBoxSetItems). /Artists ignores the parameter.
+    status, body = call("GET", path + f"&userId={user_id}&Fields=ProviderIds&CollapseBoxSetItems=false", admin)
     if status != 200:
         check(False, f"REST {path} -> HTTP {status}")
         return []
@@ -132,15 +134,29 @@ def check_tmdb_groups(admin, user_id, libraries):
     by_tmdb = defaultdict(set)
     for lid in ids:
         for movie in rest_items(admin, user_id, f"/Items?ParentId={lid}&Recursive=true&IncludeItemTypes=Movie"):
-            # ADR-0009: provider ids compare trimmed and case-insensitively, as the plugin does.
-            tmdb = ((movie.get("ProviderIds") or {}).get("Tmdb") or "").strip().lower()
+            # ADR-0009: provider keys and ids compare trimmed and case-insensitively, as the plugin does;
+            # the first non-blank value under any key equal to "tmdb" counts.
+            tmdb = next((value.strip().lower() for key, value in (movie.get("ProviderIds") or {}).items()
+                         if key.lower() == "tmdb" and (value or "").strip()), "")
             if tmdb:
                 by_tmdb[tmdb].add(norm(movie["Id"]))
     shared = {tmdb: items for tmdb, items in by_tmdb.items() if len(items) > 1}
     print(f"INFO {len(shared)} TMDb ids shared by 2+ movies; plugin reported {scan['Summary']['DuplicateMovies']} DuplicateMovies groups in {scan['DurationMs']} ms")
+    # REST -> plugin: movies that REST lists under one TMDb id sit in one plugin group.
     for tmdb, items in sorted(shared.items()):
         groups = {group_of.get(item) for item in items}
         check(None not in groups and len(groups) == 1, f"AC-11 TMDb {tmdb}: {len(items)} movies share one plugin group {sorted(map(str, groups))}")
+    # Plugin -> REST (AC-11 as written): every finding the plugin grouped by "Same TMDb id <id>" (DF-R3.6)
+    # is a movie that REST lists under that TMDb id.
+    prefix = "Same TMDb id "
+    plugin_tmdb = defaultdict(set)
+    for finding in scan["Findings"]:
+        for reason in (finding.get("Reason") or "").split("; "):
+            if reason.startswith(prefix):
+                plugin_tmdb[reason[len(prefix):].strip().lower()].add(norm(finding["ItemId"]))
+    for tmdb, items in sorted(plugin_tmdb.items()):
+        missing = sorted(items - by_tmdb.get(tmdb, set()))
+        check(not missing, f"AC-11 plugin TMDb {tmdb}: {len(items)} findings all listed by REST under that id; not listed: {missing}")
 
 
 def run_checks(admin, admin_user_id, nonadmin):
