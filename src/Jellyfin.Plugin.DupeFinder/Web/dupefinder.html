@@ -1,0 +1,77 @@
+<div id="dupeFinderPage" data-role="page" class="page type-interior pluginConfigurationPage" data-controller="__plugin/dupefinderjs">
+    <style>
+        /* specs/design.md: the only plugin-defined colour token. */
+        #dupeFinderPage { --df-group-band: rgba(127, 127, 127, 0.12); }
+        #dupeFinderPage [hidden] { display: none !important; }
+        #dupeFinderPage .df-band { background: var(--df-group-band); }
+        #dupeFinderPage .df-tableWrap { overflow-x: auto; }
+        #dupeFinderPage .df-actions { white-space: nowrap; }
+        #dupeFinderPage .df-path { word-break: break-all; min-width: 16em; }
+        #dupeFinderPage .df-status { margin-left: 0.5em; }
+    </style>
+    <div data-role="content">
+        <div class="content-primary">
+            <div class="verticalSection">
+                <div class="sectionTitleContainer flex align-items-center">
+                    <h2 class="sectionTitle">Duplicate &amp; Unmatched Finder</h2>
+                </div>
+                <p class="fieldDescription">Find duplicate and unmatched items in the selected libraries. Nothing changes until you use Identify or Edit metadata.</p>
+            </div>
+
+            <div class="verticalSection">
+                <h3 class="sectionTitle">Libraries</h3>
+                <div class="checkboxContainer">
+                    <label class="emby-checkbox-label">
+                        <input is="emby-checkbox" type="checkbox" id="dfSelectAll" checked>
+                        <span>Select all</span>
+                    </label>
+                </div>
+                <div id="dfLibraries"></div>
+            </div>
+
+            <div class="verticalSection">
+                <h3 class="sectionTitle">Duplicates</h3>
+                <div id="dfDuplicateChecks"></div>
+                <h3 class="sectionTitle">Unmatched</h3>
+                <div id="dfUnmatchedChecks"></div>
+            </div>
+
+            <div class="verticalSection">
+                <button is="emby-button" type="button" id="dfScan" class="raised button-submit block" disabled>
+                    <span>Scan</span>
+                </button>
+                <button is="emby-button" type="button" id="dfDownload" class="raised block" disabled>
+                    <span>Download CSV</span>
+                </button>
+            </div>
+
+            <div class="verticalSection" id="dfResults" hidden>
+                <h3 class="sectionTitle">Results</h3>
+                <p id="dfStats"></p>
+                <ul id="dfSummary"></ul>
+                <p id="dfEmpty" hidden>No issues found for the selected libraries and checks.</p>
+                <div id="dfTableWrap" class="df-tableWrap" hidden>
+                    <table class="detailTable">
+                        <thead>
+                            <tr>
+                                <th class="detailTableHeaderCell" scope="col">Check</th>
+                                <th class="detailTableHeaderCell" scope="col">Group</th>
+                                <th class="detailTableHeaderCell" scope="col">Library</th>
+                                <th class="detailTableHeaderCell" scope="col">Type</th>
+                                <th class="detailTableHeaderCell" scope="col">Name</th>
+                                <th class="detailTableHeaderCell" scope="col">Year</th>
+                                <th class="detailTableHeaderCell" scope="col">Episode</th>
+                                <th class="detailTableHeaderCell" scope="col">Path</th>
+                                <th class="detailTableHeaderCell" scope="col">Size</th>
+                                <th class="detailTableHeaderCell" scope="col">Provider IDs</th>
+                                <th class="detailTableHeaderCell" scope="col">Reason</th>
+                                <th class="detailTableHeaderCell" scope="col">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dfRows"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

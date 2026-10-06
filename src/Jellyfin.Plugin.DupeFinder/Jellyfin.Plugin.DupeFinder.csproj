@@ -28,4 +28,11 @@
     <InternalsVisibleTo Include="Jellyfin.Plugin.DupeFinder.Tests" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Remove="Web\dupefinder.html" />
+    <None Remove="Web\dupefinder.js" />
+    <EmbeddedResource Include="Web\dupefinder.html" />
+    <EmbeddedResource Include="Web\dupefinder.js" />
+  </ItemGroup>
+
 </Project>
