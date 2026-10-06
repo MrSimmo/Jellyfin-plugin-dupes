@@ -25,5 +25,6 @@ findings report the trimmed values.
   lower-case UUID values), and a separate rule per key adds code for nothing.
 
 ## Consequences
-Items whose names contain no letters or digits are reported only by the unmatched checks, not as
-title duplicates. Ids differing only by surrounding whitespace or letter case are treated as the same id.
+Items whose names contain no letters or digits are never reported as title or album-name
+duplicates; they can still group by provider id, and still appear in the unmatched, incomplete
+and merged-versions checks. Ids differing only by surrounding whitespace or letter case are treated as the same id.

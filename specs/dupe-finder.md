@@ -104,7 +104,7 @@ names are matched case-insensitively.
 Duplicate groups are transitive: if A matches B and B matches C, then A, B and C form one group.
 Only groups with two or more items are reported. Matching runs across all scanned libraries.
 Provider id values are compared after trimming surrounding whitespace, ignoring case.
-A normalised name (or joined album artist) that is empty never matches anything (ADR-0009).
+A normalised name (or joined album artist) that is empty never matches by name (ADR-0009).
 
 - **DF-R3.1 DuplicateMovies** — over `Movie` items in the collapsed set, two items match when:
   (a) they share a non-blank TMDb id; or (b) they share a non-blank IMDb id; or (c) at least
