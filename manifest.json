@@ -1,0 +1,20 @@
+[
+  {
+    "guid": "fee5e03c-c3e1-4067-a6a8-0ed6eb63c3a7",
+    "name": "Duplicate & Unmatched Finder",
+    "description": "Scans selected libraries for duplicate and unmatched items, lists them for review, opens Jellyfin's Identify dialog or metadata editor per item, and exports the list as CSV.",
+    "overview": "Find duplicate and unmatched library items.",
+    "owner": "Andy Simpson-Pirie",
+    "category": "Administration",
+    "versions": [
+      {
+        "version": "1.0.0.0",
+        "changelog": "Release 1.0.0.0.",
+        "targetAbi": "12.2.0.0",
+        "sourceUrl": "https://mrsimmo.github.io/Jellyfin-plugin-dupes/dupe-finder_1.0.0.0.zip",
+        "checksum": "28c9dc142f824d66f07250268bd73c24",
+        "timestamp": "2026-10-07T10:21:24Z"
+      }
+    ]
+  }
+]
