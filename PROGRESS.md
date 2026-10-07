@@ -68,3 +68,23 @@ Project progress log. Status: [x] done · [!] failed (retry) · [ ] not started 
 - Spec observations: normalisation folds Japanese dakuten (バス, パス → ハス), so unmatched same-year titles differing only by dakuten group as duplicates; the album-artist key depends on artist order.
 - Tests and tooling: coverage gaps (mixed title + year bucket, path tie-breaks, collapse wiring per check, CSV CR/`0` cases, BOM written as a literal); `build-repo.sh` lacks an empty-version guard; README's Requires line omits Node and Playwright.
 **Next:** Run `scripts/crosscheck.py` and `tests/e2e/ui-check.mjs` (env vars only) against an installed build to capture AC-7–AC-13 evidence, then triage the follow-ups.
+
+## 2026-10-07 10:39 — Publish to GitHub
+
+**Scope:** Remove the pre-rewrite backup ref, point the README at the GitHub Pages manifest, push `main` to `https://github.com/MrSimmo/Jellyfin-plugin-dupes`. Spec: DF-R9 (delivery).
+**Model:** Opus 5.5 @ session default.
+
+**Tasks:**
+- [x] T12 — Backup ref `refs/original/refs/heads/main` deleted, reflog expired, unreachable objects pruned (no object contains the removed server detail)
+- [x] T13 — Local history rebased onto the GitHub skeleton commit (MIT `LICENSE`); no force push needed
+- [x] T14 — README install URL set to `https://mrsimmo.github.io/Jellyfin-plugin-dupes/manifest.json`, plus how to build a release for that base URL
+- [ ] T15 — Push `main` to `origin`: not done by the agent (no GitHub credentials on this machine: `could not read Username for 'https://github.com'`); the user pushes from their own terminal
+- [~] T9 — Scripted live checks (carried forward; unblock as before)
+- [~] T10 — Final whole-branch code review (carried forward; unblock as before)
+- [~] T11 — 1.0.0.0 release package (carried forward). Unblock: `scripts/build-repo.sh https://mrsimmo.github.io/Jellyfin-plugin-dupes`, then publish `repo/` at the Pages site root. Until then the README's manifest URL returns 404.
+
+**Changes:** `README.md`, `PROGRESS.md`; `LICENSE` (from the GitHub skeleton commit).
+**Spec:** none.
+**Decisions:** Rebase rather than merge or force push: the local commits had never been published, the remote held only the LICENSE commit, and a linear history suits the public repository.
+**Verified:** `git cat-file --batch-all-objects --batch` → 0 objects containing the removed text; `git fsck --unreachable` → none; after the rebase `git diff` against the pre-rebase head shows only `LICENSE`.
+**Next:** Push `main` (T15), then build and publish 1.0.0.0 to GitHub Pages (T11).

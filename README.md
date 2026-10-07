@@ -9,7 +9,7 @@ Each row links to Jellyfin's own Identify dialog, metadata editor and details pa
 
 ## Install
 
-1. In Jellyfin, go to Dashboard → Plugins → Repositories and add the repository URL (`…/manifest.json`).
+1. In Jellyfin, go to Dashboard → Plugins → Repositories and add the repository URL `https://mrsimmo.github.io/Jellyfin-plugin-dupes/manifest.json`.
 2. Install **Duplicate & Unmatched Finder** from the catalog.
 3. Restart Jellyfin.
 4. Open Dashboard → Plugins → **Duplicate & Unmatched Finder** in the sidebar.
@@ -25,6 +25,8 @@ node --test tests/web/*.test.mjs                # page helpers (Node 22+)
 PLUGIN_VERSION=1.0.0.0 scripts/build-repo.sh http://<host>:8765
 scripts/serve-repo.sh                           # serves repo/ on port 8765
 ```
+
+To publish a release, run `scripts/build-repo.sh https://mrsimmo.github.io/Jellyfin-plugin-dupes` and publish the contents of `repo/` (`manifest.json` and the zip) at the root of the GitHub Pages site.
 
 Live checks: the API check `scripts/crosscheck.py` and the UI check `tests/e2e/ui-check.mjs` read their configuration only from environment variables (`JF_URL`, `JF_ADMIN_USER`, `JF_ADMIN_PW`, `JF_NONADMIN_USER`, `JF_NONADMIN_PW`), so no server address or credential is ever written to disk.
 
