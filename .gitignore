@@ -46,3 +46,6 @@ repo/
 .superpowers/
 
 *.log
+
+# Local working log (kept on disk, not published)
+PROGRESS.md
