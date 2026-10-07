@@ -1,6 +1,6 @@
 # Spec: Duplicate & Unmatched Finder (Jellyfin plugin)
 
-Status: Approved design, 2026-10-06
+Status: Implemented 2026-10-07 (design approved 2026-10-06; amendments in §8)
 Target: Jellyfin Server 12.2.0 (jellyfin and jellyfin-web tag `v12.2`)
 Decisions: ADR-0001 … ADR-0009 in `docs/adr/`. Visual rules: `specs/design.md`.
 

@@ -1,8 +1,48 @@
+# macOS / Windows
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+Thumbs.db
+Desktop.ini
+
+# Editors and IDEs
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+*.userprefs
+*.swp
+*~
+
+# .NET build and test output
 bin/
 obj/
-.vs/
-.idea/
-.DS_Store
 artifacts/
-repo/
+TestResults/
+*.trx
+coverage/
+*.coverage
+
+# Node / Playwright
 node_modules/
+test-results/
+playwright-report/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# Local environment files (server address and credentials are env-only, spec DF-C4)
+.env
+.env.*
+
+# Plugin repository output: zip + manifest carry a machine-specific base URL (DF-R9.3)
+repo/
+
+# Agent scratch space
+.superpowers/
+
+*.log
